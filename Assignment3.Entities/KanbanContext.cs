@@ -2,7 +2,12 @@ namespace Assignment3.Entities;
 
 public class KanbanContext : DbContext
 {
-    
+    public KanbanContext(DbContextOptions<KanbanContext> options) : base(options){}
+
+    public virtual DbSet<Task> Tasks => Set<Task>();
+    public virtual DbSet<User> Users => Set<User>();
+    public virtual DbSet<Tag> Tags => Set<Tag>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
@@ -11,5 +16,13 @@ public class KanbanContext : DbContext
             .HasConversion(
                 v => v.ToString(),
                 v => (State)Enum.Parse(typeof(State), v));
+
+        modelBuilder.Entity<Task>().Property(t => t.Title).HasMaxLength(100);
+        modelBuilder.Entity<User>().Property(u => u.Name).HasMaxLength(100);
+        modelBuilder.Entity<User>().Property(u => u.Email).HasMaxLength(100);
+        modelBuilder.Entity<Tag>().Property(t => t.Name).HasMaxLength(50);
+
+        modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+        modelBuilder.Entity<Tag>().HasIndex(t => t.Name).IsUnique();
     }
 }
