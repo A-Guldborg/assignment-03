@@ -2,8 +2,8 @@ namespace Assignment3.Entities;
 
 public class Tag
 {
-    private int Id { get; set; }
-    private string Name { get; set; }
-    private Task[] Tasks { get; set; }
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public Task[] Tasks { get; set; }
     
 }
