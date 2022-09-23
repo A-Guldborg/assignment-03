@@ -2,6 +2,7 @@ namespace Assignment3.Entities;
 
 public class KanbanContext : DbContext
 {
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
