@@ -1,5 +1,15 @@
 namespace Assignment3.Entities;
 
+public class Task
+{
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public User AssignedTo { get; set; }
+    public string Description { get; set; }
+    public State State { get; set; }
+    public Tag[] Tags { get; set; }
+}
+
 public enum State
 {
     New,
@@ -7,14 +17,4 @@ public enum State
     Resolved,
     Closed,
     Removed
-}
-
-public class Task
-{
-    private int Id { get; set; }
-    private string Title { get; set; }
-    private User AssignedTo { get; set; }
-    private string Description { get; set; }
-    private State State { get; set; }
-    private Tag[] Tags { get; set; }
 }
