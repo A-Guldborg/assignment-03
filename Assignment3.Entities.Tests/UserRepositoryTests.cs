@@ -27,4 +27,17 @@ public class UserRepositoryTests
         // Assert
         returnTuple.Response.Should().Be(Response.Conflict);
     }
+
+    [Fact]
+    public void Trying_to_delete_a_user_in_use_without_the_force_should_return_Conflict()
+    {
+        // Assign
+        var william = _repository.Read(0); 
+        new UserCreateDTO("Frederik Petersen", "frepe@itu.dk");
+        
+
+        // Act
+
+        // Assert
+    }
 }
