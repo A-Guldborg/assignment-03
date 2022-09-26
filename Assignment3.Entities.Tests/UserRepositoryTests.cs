@@ -1,6 +1,8 @@
 using Assignment3.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.InMemory;
 
 namespace Assignment3.Entities.Tests;
 
@@ -11,24 +13,27 @@ public class UserRepositoryTests
 
     public UserRepositoryTests()
     {
-        var connection = new SqliteConnection("Filename=:memory");
-        connection.Open();
-        var builder = new DbContextOptionsBuilder<KanbanContext>();
-        builder.UseSqlite(connection);
-        var context = new KanbanContext(builder.Options);
+        var builder = new DbContextOptionsBuilder<KanbanContext>()
+            .UseInMemoryDatabase("KanbanTest")
+            .ConfigureWarnings(b => 
+                b.Ignore(InMemoryEventId.TransactionIgnoredWarning)).Options;
+        using var context = new KanbanContext(builder);
+        context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
         
         // Repo specific adds
         var andreas = new User { Id = 1, Name = "Andreas Guldborg Hansen", Email = "aguh@itu.dk" };
         context.Users.Add(andreas);
-        var andreas_task = new Task
+        var andreasTask = new Task
         {
             Id = 1, Title = "Laundry", 
             AssignedTo = andreas, 
             Description = "Don't mix colors and white!",
             State = State.New
         };
-        andreas.AddTask(andreas_task);
+        andreas.AddTask(andreasTask);
+
+        context.SaveChanges();
         
         _context = context;
         _repository = new UserRepository();
@@ -39,6 +44,9 @@ public class UserRepositoryTests
     {
         var response = _repository.Delete(1, true);
         response.Should().Be(Response.Deleted);
+
+        var entity = _context.Users.Find(1);
+        entity.Should().BeNull();
     }
 
     [Fact]
@@ -46,6 +54,9 @@ public class UserRepositoryTests
     {
         var response = _repository.Delete(1, false);
         response.Should().Be(Response.Conflict);
+        
+        var entity = _context.Users.Find(1);
+        entity.Should().NotBeNull();
     }
     
     [Fact]
