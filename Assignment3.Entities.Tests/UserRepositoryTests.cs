@@ -1,4 +1,6 @@
 using Assignment3.Core;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 namespace Assignment3.Entities.Tests;
 
@@ -9,78 +11,53 @@ public class UserRepositoryTests
 
     public UserRepositoryTests()
     {
+        var connection = new SqliteConnection("Filename=:memory");
+        connection.Open();
+        var builder = new DbContextOptionsBuilder<KanbanContext>();
+        builder.UseSqlite(connection);
+        var context = new KanbanContext(builder.Options);
+        context.Database.EnsureCreated();
+        
+        // Repo specific adds
+        var andreas = new User { Id = 1, Name = "Andreas Guldborg Hansen", Email = "aguh@itu.dk" };
+        context.Users.Add(andreas);
+        var andreas_task = new Task
+        {
+            Id = 1, Title = "Laundry", 
+            AssignedTo = andreas, 
+            Description = "Don't mix colors and white!",
+            State = State.New
+        };
+        andreas.AddTask(andreas_task);
+        
+        _context = context;
         _repository = new UserRepository();
-        //_repository.Create(new UserCreateDTO("Andreas Guldborg Hansen", "aguh@itu.dk"));
-        //_repository.Create(new UserCreateDTO("William Skou Heidemann", "wihe@itu.dk"));
-        //_repository.Create(new UserCreateDTO("Rakul Maria Hjalmarsdóttir Tórgarð", "rakt@itu.dk"));
     }
 
     [Fact]
     public void Users_who_are_assigned_to_a_task_may_only_be_deleted_using_the_force()
     {
-        // // Assign
-        // // var user = new User()
-        // // {
-        // //     Name = "Test_Name",
-        // //     Email = "test@test.com",
-        // // };
-        //
-        // var user = _context.Users.Find(1);
-        //
-        // var task = new Task()
-        // {
-        //     Title = "Test_Title",
-        //     State = State.Active,
-        //     AssignedTo = user,
-        // };
-        //
-        //
-        // user.Tasks.Add(task);
-        //
-        // // Act
-        // var response = _repository.Delete(user.Id);
-        //
-        //
-        // // Assert
-
-
+        var response = _repository.Delete(1, true);
+        response.Should().Be(Response.Deleted);
     }
 
     [Fact]
     public void Trying_to_delete_a_user_in_use_without_the_force_should_return_Conflict()
     {
-        // // Assign
-        // var user = new UserCreateDTO("Test_Name", "test@test.com");
-        //
-        // var task = new Task()
-        // {
-        //     Title = "Work on a sunday",
-        //     State = State.Active,
-        //     AssignedTo = user
-        // };
-        //
-        // user.Tasks.Add(task);
-        //
-        // // Act
-        // _repository.Create(user);
-        // var response = _repository.Delete(user.Id, false);
-        //
-        // // Assert
-        // response.Should().Be(Response.Conflict);
+        var response = _repository.Delete(1, false);
+        response.Should().Be(Response.Conflict);
     }
     
     [Fact]
     public void Trying_to_create_a_user_which_exists_already_same_email_should_return_Conflict()
     {
         // Assign
-        var aguh_user_one = new UserCreateDTO("Andreas Guldborg Hansen", "aguh@itu.dk");
-        var aguh_user_two = new UserCreateDTO("Frederik Petersen", "aguh@itu.dk");
+        var aguh_user_two = new UserCreateDTO("Andreas Test User", "aguh@itu.dk");
 
         // Act
-        _repository.Create(aguh_user_one);
-        var returnTuple = _repository.Create(aguh_user_two);
+        var (response, userId) = _repository.Create(aguh_user_two);
         
         // Assert
-        returnTuple.Response.Should().Be(Response.Conflict);
+        response.Should().Be(Response.Conflict);
     }
 }
