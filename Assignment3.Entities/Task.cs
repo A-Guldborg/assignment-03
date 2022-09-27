@@ -9,7 +9,7 @@ public class Task
     public User? AssignedTo { get; set; }
     public string? Description { get; set; }
     [Required] public State State { get; set; }
-    public IEnumerable<Tag> Tags { get; set; } = new List<Tag>();
+    public ICollection<Tag> Tags { get; set; } = new List<Tag>();
 }
 
 public enum State
