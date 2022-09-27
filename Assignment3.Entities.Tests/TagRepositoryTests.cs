@@ -24,10 +24,16 @@ public class TagRepositoryTests
             Id = 1,
             Name = "Housework"
         };
+
+        var homeworkTag = new Tag{
+            Id = 2,
+            Name = "Homework"
+        };
         
         laundryTask.Tags.Append(houseworkTag);
         houseworkTag.Tasks.Append(laundryTask);
 
+        context.AddRange(laundryTask, houseworkTag, homeworkTag);
 
         context.SaveChanges();
         
@@ -62,15 +68,15 @@ public class TagRepositoryTests
     public void Trying_to_create_a_tag_which_exists_already_should_return_Conflict()
     {
         // Given
-        var duplicateTag = new Tag{
-            Id = 2,
-            Name = "Housework"
-        };
+        var firstTag = new TagCreateDTO("Homework");
+        var duplicateTag = new TagCreateDTO("Homework");
     
         // When
-        var response = _context.Tags.Add(duplicateTag);
+        var creationResponse = _repository.Create(firstTag);
+        var duplicateResponse = _repository.Create(duplicateTag);
     
         // Then
-        response.Should().Be(Response.Conflict);
+        creationResponse.Response.Should().Be(Response.Created);
+        duplicateResponse.Response.Should().Be(Response.Conflict);
     }
 }
