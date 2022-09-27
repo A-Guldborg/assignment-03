@@ -32,7 +32,10 @@ public class TagRepository : ITagRepository
 
     public IReadOnlyCollection<TagDTO> ReadAll()
     {
-        throw new NotImplementedException();
+        var collection = from t in _context.Tags
+                         select new TagDTO(t.Id, t.Name);
+                        
+        return collection.ToList();
     }
 
     public TagDTO Read(int tagId)
@@ -46,7 +49,12 @@ public class TagRepository : ITagRepository
 
     public Response Update(TagUpdateDTO tag)
     {
-        throw new NotImplementedException();
+        var entity = _context.Tags.FirstOrDefault(t => t.Id == tag.Id);
+        if (entity is null) return Response.NotFound;
+
+        entity.Name = tag.Name;
+        _context.SaveChanges();
+        return Response.Updated;
     }
 
     public Response Delete(int tagId, bool force = false)
