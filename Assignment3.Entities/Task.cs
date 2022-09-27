@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Assignment3.Core;
 
 namespace Assignment3.Entities;
 
@@ -12,11 +13,3 @@ public class Task
     public IEnumerable<Tag> Tags { get; set; } = new List<Tag>();
 }
 
-public enum State
-{
-    New,
-    Active,
-    Resolved,
-    Closed,
-    Removed
-}

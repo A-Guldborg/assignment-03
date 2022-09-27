@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Configuration;
 using Assignment3.Core;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,7 @@ public class TaskRepositoryTests
         context.Database.EnsureCreated();
         
         // Repo specific adds
-        var unassignedTask = new Task
+        var newTask = new Task
         {
             Id = 1, Title = "Dishes", 
             Description = "There are a lot! Prepare.",
@@ -57,7 +58,18 @@ public class TaskRepositoryTests
             State = State.Removed
         };
         
-        context.AddRange(unassignedTask, resolvedTask, activeTask, closedTask, removedTask);
+        var andreas = new User { Id = 1, Name = "Andreas Guldborg Hansen", Email = "aguh@itu.dk" };
+        context.Users.Add(andreas);
+        var andreasTask = new Task
+        {
+            Id = 6, Title = "Laundry", 
+            AssignedTo = andreas, 
+            Description = "Don't mix colors and white!",
+            State = State.New
+        };
+        andreas.AddTask(andreasTask);
+
+        context.AddRange(newTask, resolvedTask, activeTask, closedTask, removedTask);
 
         context.SaveChanges();
         
@@ -91,5 +103,46 @@ public class TaskRepositoryTests
         
         response = _repository.Delete(5); // Removed
         response.Should().Be(Response.Conflict);
+    }
+
+    [Fact]
+    public void Creating_a_task_will_set_its_state_to_New_and_Created_and_StateUpdated_to_current_time_in_UTC()
+    {
+        var response = _repository.Create(new TaskCreateDTO("Monday Task", null, "", new List<string>()));
+        var task = _repository.Read(response.TaskId);
+        task.State.Should().Be(Core.State.New);
+        task.Created.Should().Be(DateTime.Now);
+        task.StateUpdated.Should().Be(DateTime.Now);
+    }
+
+    [Fact]
+    public void Create_or_update_task_must_allow_for_editing_tags()
+    {
+        var response = _repository.Create(new TaskCreateDTO("Test Task", 1, "", new List<string>() {"Important"} ));
+        var task = _repository.Read(response.TaskId);
+        task.Tags.Count.Should().Be(1);
+        
+        var newTags = new List<string>(task.Tags);
+        newTags.Append("Boring");
+        var updateDTO = new TaskUpdateDTO(task.Id, task.Title, 1, task.Description, newTags, task.State);
+        _repository.Update(updateDTO);
+        task.Tags.Count.Should().Be(2);
+    }
+
+    [Fact]
+    public void Updating_the_State_of_a_task_will_change_the_StateUpdated_to_current_time_in_UTC()
+    {
+        var task = _context.Tasks.Find(3); // Active task
+        _repository.Update(new TaskUpdateDTO(task.Id, task.Title, 1, task.Description, new string[] { }, task.State));
+        var taskDetails = _repository.Read(task.Id);
+        taskDetails.StateUpdated.Should().Be(DateTime.Now);
+    }
+
+    [Fact]
+    public void Assigning_a_user_which_does_not_exist_should_return_BadRequest()
+    {
+        var task = _context.Tasks.Find(3); // Active task
+        var response = _repository.Update(new TaskUpdateDTO(task.Id, task.Title, 2, task.Description, new string[] { }, task.State)); // User id 2 does not exist
+        response.Should().Be(Response.BadRequest);
     }
 }
