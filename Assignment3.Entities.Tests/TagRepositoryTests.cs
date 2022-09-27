@@ -101,4 +101,36 @@ public class TagRepositoryTests : IDisposable
         // Then
         response.Response.Should().Be(Response.Created);
     }
+
+    [Fact]
+    public void Trying_to_update_a_non_existing_entity_should_return_NotFound()
+    {
+        // Given
+        var newTag = new TagUpdateDTO(1212, "This tag does not exist!");
+
+        // When
+        var response = _repository.Update(newTag);
+    
+        // Then
+        response.Should().Be(Response.NotFound);
+    }
+
+    [Fact]
+    public void Update_an_existing_tag_should_return_Updated()
+    {
+        // Given
+        var newTag = new TagUpdateDTO(1, "This is my new name");
+
+        // When
+        var response = _repository.Update(newTag);
+    
+        // Then
+        response.Should().Be(Response.Updated);
+
+        // When
+        var updatedTag = _repository.Read(1);
+
+        // Then
+        updatedTag.Name.Should().Be("This is my new name");
+    }
 }
