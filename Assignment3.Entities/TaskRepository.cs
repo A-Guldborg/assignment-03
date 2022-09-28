@@ -13,7 +13,17 @@ public class TaskRepository : ITaskRepository
     
     public (Response Response, int TaskId) Create(TaskCreateDTO task)
     {
-        throw new NotImplementedException();
+        var newTask = new Task
+        { 
+            Title = task.Title, 
+            AssignedTo = _context.Users.Find(task.AssignedToId), 
+            Description = task.Description, 
+            State = State.New 
+        };
+        _context.Tasks.Add(newTask);
+        _context.SaveChanges();
+        return (Response.Created, newTask.Id);
+
     }
 
     public IReadOnlyCollection<TaskDTO> ReadAll()
