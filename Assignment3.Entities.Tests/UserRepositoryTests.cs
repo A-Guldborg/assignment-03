@@ -15,7 +15,7 @@ public class UserRepositoryTests : IDisposable
             .UseInMemoryDatabase("KanbanTest", _databaseRoot)
             .ConfigureWarnings(b => 
                 b.Ignore(InMemoryEventId.TransactionIgnoredWarning)).Options;
-        using var context = new KanbanContext(builder);
+        var context = new KanbanContext(builder);
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
         

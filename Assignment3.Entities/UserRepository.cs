@@ -21,6 +21,7 @@ public class UserRepository : IUserRepository
         newUser.Email = user.Email;
         newUser.Name = user.Name;
         _context.Users.Add(newUser);
+        _context.SaveChanges();
         return (Response.Created, newUser.Id);
     }
 
@@ -60,6 +61,8 @@ public class UserRepository : IUserRepository
         var user = _context.Users.Find(userId);
         if (user is null) return Response.NotFound;
         if (user.Tasks.Count > 0 && force == false) return Response.Conflict;
+        _context.Users.Remove(user);
+        _context.SaveChanges();
         return Response.Deleted;
     }
 }

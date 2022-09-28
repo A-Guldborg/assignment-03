@@ -3,21 +3,23 @@ using System.Configuration;
 using Assignment3.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Assignment3.Entities.Tests;
 
-public class TaskRepositoryTests
+public class TaskRepositoryTests : IDisposable
 {
     private readonly KanbanContext _context;
     private readonly TaskRepository _repository;
+    private static readonly InMemoryDatabaseRoot _databaseRoot;
 
     public TaskRepositoryTests()
     {
         var builder = new DbContextOptionsBuilder<KanbanContext>()
-            .UseInMemoryDatabase("KanbanTest")
+            .UseInMemoryDatabase("KanbanTest", _databaseRoot)
             .ConfigureWarnings(b => 
                 b.Ignore(InMemoryEventId.TransactionIgnoredWarning)).Options;
-        using var context = new KanbanContext(builder);
+        var context = new KanbanContext(builder);
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
         
@@ -75,6 +77,11 @@ public class TaskRepositoryTests
         
         _context = context;
         _repository = new TaskRepository();
+    }
+    
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 
     [Fact]
