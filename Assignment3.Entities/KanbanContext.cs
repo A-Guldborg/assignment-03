@@ -26,5 +26,7 @@ public class KanbanContext : DbContext
 
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
         modelBuilder.Entity<Tag>().HasIndex(t => t.Name).IsUnique();
+
+        modelBuilder.Entity<Tag>().HasMany(s => s.Tasks).WithMany(c => c.Tags);
     }
 }
