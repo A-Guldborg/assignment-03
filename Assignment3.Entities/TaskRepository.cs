@@ -53,6 +53,10 @@ public class TaskRepository : ITaskRepository
 
     public Response Delete(int taskId)
     {
-        throw new NotImplementedException();
+        var entity = _context.Tasks.Find(taskId);
+        if (entity is null) return Response.NotFound;
+        if (entity.State == State.Resolved || entity.State == State.Closed || entity.State == State.Removed) return Response.Conflict;
+        if (entity.State == State.Active) entity.State = State.Removed;
+        return Response.Deleted;
     }
 }
