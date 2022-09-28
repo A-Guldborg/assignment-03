@@ -67,7 +67,7 @@ public class TaskRepositoryTests
             Description = "Don't mix colors and white!",
             State = State.New
         };
-        andreas.AddTask(andreasTask);
+        andreas.Tasks.Add(andreasTask);
 
         context.AddRange(newTask, resolvedTask, activeTask, closedTask, removedTask);
 

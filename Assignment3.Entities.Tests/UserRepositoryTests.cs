@@ -1,15 +1,18 @@
 using Assignment3.Core;
+using Microsoft.EntityFrameworkCore.Storage;
+
 namespace Assignment3.Entities.Tests;
 
-public class UserRepositoryTests
+public class UserRepositoryTests : IDisposable
 {
     private readonly KanbanContext _context;
     private readonly UserRepository _repository;
-
+    private static readonly InMemoryDatabaseRoot _databaseRoot = new();
+    
     public UserRepositoryTests()
     {
         var builder = new DbContextOptionsBuilder<KanbanContext>()
-            .UseInMemoryDatabase("KanbanTest")
+            .UseInMemoryDatabase("KanbanTest", _databaseRoot)
             .ConfigureWarnings(b => 
                 b.Ignore(InMemoryEventId.TransactionIgnoredWarning)).Options;
         using var context = new KanbanContext(builder);
@@ -26,12 +29,17 @@ public class UserRepositoryTests
             Description = "Don't mix colors and white!",
             State = State.New
         };
-        andreas.AddTask(andreasTask);
+        andreas.Tasks.Add(andreasTask);
 
         context.SaveChanges();
         
         _context = context;
-        _repository = new UserRepository();
+        _repository = new UserRepository(context);
+    }
+    
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 
     [Fact]
