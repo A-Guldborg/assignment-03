@@ -76,7 +76,7 @@ public class TaskRepositoryTests : IDisposable
         context.SaveChanges();
         
         _context = context;
-        _repository = new TaskRepository();
+        _repository = new TaskRepository(context);
     }
     
     public void Dispose()
