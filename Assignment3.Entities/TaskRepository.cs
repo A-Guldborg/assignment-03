@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Assignment3.Core;
 
 namespace Assignment3.Entities;
@@ -43,7 +44,18 @@ public class TaskRepository : ITaskRepository
 
     public TaskDetailsDTO Read(int taskId)
     {
-        throw new NotImplementedException();
+    
+        var task = _context.Tasks.Find(taskId);
+
+        var tags = new Collection<string>();
+        foreach (var tag in task.Tags)
+        {
+            tags.Add(tag.ToString());
+        }
+        IReadOnlyCollection<string> taskTags = tags;
+
+        return new TaskDetailsDTO(task.Id, task.Title, task.Description, task.Created, task.AssignedTo.Name, taskTags,
+        task.State, task.StateUpdated);
     }
 
     public Response Update(TaskUpdateDTO task)

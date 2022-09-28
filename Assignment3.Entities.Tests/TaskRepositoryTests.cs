@@ -118,8 +118,11 @@ public class TaskRepositoryTests : IDisposable
         var response = _repository.Create(new TaskCreateDTO("Monday Task", null, "", new List<string>()));
         var task = _repository.Read(response.TaskId);
         task.State.Should().Be(Core.State.New);
-        task.Created.Should().Be(DateTime.Now);
-        task.StateUpdated.Should().Be(DateTime.Now);
+        
+        var expected = DateTime.UtcNow;
+        
+        task.Created.Should().BeCloseTo(expected, precision: TimeSpan.FromSeconds(5));
+        task.StateUpdated.Should().BeCloseTo(expected, precision: TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -142,7 +145,8 @@ public class TaskRepositoryTests : IDisposable
         var task = _context.Tasks.Find(3); // Active task
         _repository.Update(new TaskUpdateDTO(task.Id, task.Title, 1, task.Description, new string[] { }, task.State));
         var taskDetails = _repository.Read(task.Id);
-        taskDetails.StateUpdated.Should().Be(DateTime.Now);
+        var expected = DateTime.UtcNow;
+        taskDetails.StateUpdated.Should().BeCloseTo(expected, precision: TimeSpan.FromSeconds(5));
     }
 
     [Fact]

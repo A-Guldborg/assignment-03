@@ -10,6 +10,9 @@ public class Task
     public User? AssignedTo { get; set; }
     public string? Description { get; set; }
     [Required] public State State { get; set; }
+    public DateTime StateUpdated { get; set; } = DateTime.UtcNow;
     public IEnumerable<Tag> Tags { get; set; } = new List<Tag>();
+    public DateTime Created { get; } = DateTime.UtcNow;
+    
 }
 
