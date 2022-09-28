@@ -19,37 +19,78 @@ public class TaskRepository : ITaskRepository
             Title = task.Title, 
             AssignedTo = _context.Users.Find(task.AssignedToId), 
             Description = task.Description, 
-            State = State.New 
+            State = State.New,
+            StateUpdated = DateTime.UtcNow
         };
         _context.Tasks.Add(newTask);
         _context.SaveChanges();
         return (Response.Created, newTask.Id);
-
     }
 
     public IReadOnlyCollection<TaskDTO> ReadAll()
     {
-        throw new NotImplementedException();
+        // er der ikke en bedre måde at gøre dether på ?
+        //
+        // var tags = new Collection<string>();
+        // foreach (var tag in _context.Tags)
+        // {
+        //     tags.Add(tag.ToString());
+        // }
+        // IReadOnlyCollection<string> taskTags = tags;
+
+        var collection =
+            from t in _context.Tasks
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, ???, t.State);
+
+        return collection.ToList();
+                        
     }
 
     public IReadOnlyCollection<TaskDTO> ReadAllRemoved()
     {
-        throw new NotImplementedException();
+        var tags = new Collection<string>();
+        foreach (var tag in _context.Tags)
+        {
+            tags.Add(tag.ToString());
+        }
+        IReadOnlyCollection<string> taskTags = tags;
+
+        var collection =
+            from t in _context.Tasks
+            where t.State == State.Removed
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, taskTags, t.State);
+
+        return collection.ToList();
     }
 
     public IReadOnlyCollection<TaskDTO> ReadAllByTag(string tag)
     {
-        throw new NotImplementedException();
+        var collection =
+            from t in _context.Tasks
+            where t.Tags.Equals(tag)
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, ???, t.State);
+        
+        return collection.ToList();
     }
 
     public IReadOnlyCollection<TaskDTO> ReadAllByUser(int userId)
     {
-        throw new NotImplementedException();
+        var collection =
+            from t in _context.Tasks
+            where t.AssignedTo.Id == userId
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, ???, t.State);
+
+        return collection.ToArray();
     }
 
     public IReadOnlyCollection<TaskDTO> ReadAllByState(Core.State state)
     {
-        throw new NotImplementedException();
+        var collection =
+            from t in _context.Tasks
+            where t.State == state
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, ???, t.State);
+
+        return collection.ToArray();
     }
 
     public TaskDetailsDTO Read(int taskId)
@@ -70,7 +111,16 @@ public class TaskRepository : ITaskRepository
 
     public Response Update(TaskUpdateDTO task)
     {
-        throw new NotImplementedException();
+        var entity = _context.Tasks.FirstOrDefault(t => t.Id == task.Id);
+        if (entity is null) return Response.NotFound;
+        entity.Id = task.Id;
+        entity.Title = task.Title;
+        entity.AssignedTo = _context.Users.Find(task.AssignedToId);
+        entity.Description = task.Description;
+        entity.State = task.State;
+        entity.StateUpdated = DateTime.UtcNow;
+        _context.SaveChanges();
+        return Response.Updated;
     }
 
     public Response Delete(int taskId)
