@@ -128,15 +128,20 @@ public class TaskRepositoryTests : IDisposable
     [Fact]
     public void Create_or_update_task_must_allow_for_editing_tags()
     {
-        var response = _repository.Create(new TaskCreateDTO("Test Task", 1, "", new List<string>() {"Important"} ));
+        var tag_repository = new TagRepository(_context);
+        tag_repository.Create(new TagCreateDTO("Important"));
+        tag_repository.Create(new TagCreateDTO("A"));
+
+        var response = _repository.Create(new TaskCreateDTO("Test Task", 1, "", new List<string> {"Important", "A"} ));
         var task = _repository.Read(response.TaskId);
-        task.Tags.Count.Should().Be(1);
-        
-        var newTags = new List<string>(task.Tags);
-        newTags.Append("Boring");
-        var updateDTO = new TaskUpdateDTO(task.Id, task.Title, 1, task.Description, newTags, task.State);
-        _repository.Update(updateDTO);
         task.Tags.Count.Should().Be(2);
+        
+        
+        tag_repository.Create(new TagCreateDTO("Boring"));
+        var updateDTO = new TaskUpdateDTO(task.Id, task.Title, 1, task.Description, new List<string>() {"Important", "A", "Boring"}, task.State);
+        _repository.Update(updateDTO);
+        task = _repository.Read(task.Id);
+        task.Tags.Count.Should().Be(3);
     }
 
     [Fact]

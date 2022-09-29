@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Assignment3.Core;
 
 namespace Assignment3.Entities;
@@ -18,9 +19,10 @@ public class TaskRepository : ITaskRepository
         { 
             Title = task.Title, 
             AssignedTo = _context.Users.Find(task.AssignedToId), 
-            Description = task.Description, 
+            Description = task.Description,
             State = State.New,
-            StateUpdated = DateTime.UtcNow
+            StateUpdated = DateTime.UtcNow,
+            Tags = _context.Tags.Where(t => task.Tags.Contains(t.Name)).ToList()
         };
         _context.Tasks.Add(newTask);
         _context.SaveChanges();
@@ -29,36 +31,21 @@ public class TaskRepository : ITaskRepository
 
     public IReadOnlyCollection<TaskDTO> ReadAll()
     {
-        // er der ikke en bedre måde at gøre dether på ?
-        //
-        // var tags = new Collection<string>();
-        // foreach (var tag in _context.Tags)
-        // {
-        //     tags.Add(tag.ToString());
-        // }
-        // IReadOnlyCollection<string> taskTags = tags;
-
         var collection =
             from t in _context.Tasks
-            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, ???, t.State);
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, 
+                t.Tags.Select(v => v.Name).ToList().AsReadOnly(), t.State);
 
-        return collection.ToList();
-                        
+        return collection.ToList().AsReadOnly();
     }
 
     public IReadOnlyCollection<TaskDTO> ReadAllRemoved()
     {
-        var tags = new Collection<string>();
-        foreach (var tag in _context.Tags)
-        {
-            tags.Add(tag.ToString());
-        }
-        IReadOnlyCollection<string> taskTags = tags;
-
         var collection =
             from t in _context.Tasks
             where t.State == State.Removed
-            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, taskTags, t.State);
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, 
+                t.Tags.Select(v => v.ToString()).ToList().AsReadOnly(), t.State);
 
         return collection.ToList();
     }
@@ -67,10 +54,11 @@ public class TaskRepository : ITaskRepository
     {
         var collection =
             from t in _context.Tasks
-            where t.Tags.Equals(tag)
-            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, ???, t.State);
+            where t.Tags.Select(taskTag => taskTag.ToString().Equals(tag)).Any()
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, 
+                t.Tags.Select(v => v.ToString()).ToList().AsReadOnly(), t.State);
         
-        return collection.ToList();
+        return collection.ToList().AsReadOnly();
     }
 
     public IReadOnlyCollection<TaskDTO> ReadAllByUser(int userId)
@@ -78,9 +66,10 @@ public class TaskRepository : ITaskRepository
         var collection =
             from t in _context.Tasks
             where t.AssignedTo.Id == userId
-            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, ???, t.State);
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, 
+                t.Tags.Select(v => v.ToString()).ToList().AsReadOnly(), t.State);
 
-        return collection.ToArray();
+        return collection.ToList().AsReadOnly();
     }
 
     public IReadOnlyCollection<TaskDTO> ReadAllByState(Core.State state)
@@ -88,25 +77,20 @@ public class TaskRepository : ITaskRepository
         var collection =
             from t in _context.Tasks
             where t.State == state
-            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, ???, t.State);
+            select new TaskDTO(t.Id, t.Title, t.AssignedTo.Name, 
+                t.Tags.Select(v => v.ToString()).ToList().AsReadOnly(), t.State);
 
-        return collection.ToArray();
+        return collection.ToList().AsReadOnly();
     }
 
     public TaskDetailsDTO Read(int taskId)
     {
-    
-        var task = _context.Tasks.Find(taskId);
-
-        var tags = new Collection<string>();
-        foreach (var tag in task.Tags)
-        {
-            tags.Add(tag.ToString());
-        }
-        IReadOnlyCollection<string> taskTags = tags;
-
-        return new TaskDetailsDTO(task.Id, task.Title, task.Description, task.Created, task.AssignedTo.Name, taskTags,
-        task.State, task.StateUpdated);
+        //var task = _context.Tasks.Find(taskId);
+        var task = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
+        return new TaskDetailsDTO(task.Id, task.Title, task.Description, task.Created, 
+            task.AssignedTo is null ? null : task.AssignedTo.Name, 
+            task.Tags.Select(v => v.ToString()).ToList().AsReadOnly(),
+            task.State, task.StateUpdated);
     }
 
     public Response Update(TaskUpdateDTO task)
@@ -115,10 +99,13 @@ public class TaskRepository : ITaskRepository
         if (entity is null) return Response.NotFound;
         entity.Id = task.Id;
         entity.Title = task.Title;
-        entity.AssignedTo = _context.Users.Find(task.AssignedToId);
+        var user = _context.Users.Find(task.AssignedToId);
+        if (user is null) return Response.BadRequest;
+        entity.AssignedTo = user;
         entity.Description = task.Description;
         entity.State = task.State;
         entity.StateUpdated = DateTime.UtcNow;
+        entity.Tags = _context.Tags.Where(t => task.Tags.Contains(t.Name)).ToList();
         _context.SaveChanges();
         return Response.Updated;
     }
