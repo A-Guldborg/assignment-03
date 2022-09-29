@@ -1,5 +1,4 @@
 namespace Assignment3.Entities;
-
 public class Tag
 {
     public Tag(string name) {

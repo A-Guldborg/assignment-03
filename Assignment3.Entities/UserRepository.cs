@@ -1,6 +1,3 @@
-using System.Collections.ObjectModel;
-using Assignment3.Core;
-
 namespace Assignment3.Entities;
 
 public class UserRepository : IUserRepository

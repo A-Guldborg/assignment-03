@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using Assignment3.Core;
-
 namespace Assignment3.Entities;
 
 public class Task

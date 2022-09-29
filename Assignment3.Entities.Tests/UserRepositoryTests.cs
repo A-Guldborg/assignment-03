@@ -1,6 +1,3 @@
-using Assignment3.Core;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Assignment3.Entities.Tests;
 
 public class UserRepositoryTests : IDisposable
