@@ -3,16 +3,16 @@ namespace Assignment3.Entities.Tests;
 public class UserRepositoryTests : IDisposable
 {
     private readonly KanbanContext _context;
+    private readonly SqliteConnection _connection;
     private readonly UserRepository _repository;
-    private static readonly InMemoryDatabaseRoot _databaseRoot = new();
     
     public UserRepositoryTests()
     {
-        var builder = new DbContextOptionsBuilder<KanbanContext>()
-            .UseInMemoryDatabase("KanbanTest", _databaseRoot)
-            .ConfigureWarnings(b => 
-                b.Ignore(InMemoryEventId.TransactionIgnoredWarning)).Options;
-        var context = new KanbanContext(builder);
+        _connection = new SqliteConnection("Filename=:memory:");
+        _connection.Open();
+        var builder = new DbContextOptionsBuilder<KanbanContext>();
+        builder.UseSqlite(_connection);
+        var context = new KanbanContext(builder.Options);
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
         

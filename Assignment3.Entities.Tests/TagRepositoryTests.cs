@@ -3,14 +3,14 @@ namespace Assignment3.Entities.Tests;
 public class TagRepositoryTests : IDisposable
 {
     private readonly KanbanContext _context;
-    private static readonly InMemoryDatabaseRoot _databaseRoot = new();
+    private readonly SqliteConnection _connection;
     private readonly TagRepository _repository;
     public TagRepositoryTests() {
-        var builder = new DbContextOptionsBuilder<KanbanContext>()
-            .UseInMemoryDatabase("KanbanTest", _databaseRoot)
-            .ConfigureWarnings(b => 
-                b.Ignore(InMemoryEventId.TransactionIgnoredWarning)).Options;
-        var context = new KanbanContext(builder);
+        _connection = new SqliteConnection("Filename=:memory:");
+        _connection.Open();
+        var builder = new DbContextOptionsBuilder<KanbanContext>();
+        builder.UseSqlite(_connection);
+        var context = new KanbanContext(builder.Options);
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
         
@@ -38,6 +38,7 @@ public class TagRepositoryTests : IDisposable
 
     public void Dispose() {
         _context.Dispose();
+        _connection.Dispose();
     }
 
     [Fact]
