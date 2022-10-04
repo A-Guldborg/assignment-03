@@ -6,6 +6,10 @@
 - Rakul Maria Hjalmarsdóttir Tórgarð - rakt@itu.dk
 - William Skou Heidemann - wihe@itu.dk
 
+## BE AWARE
+
+We just continued in the same group for assignment-04, which means that the current state of the repository resembles assignment-04. To checkout assignment-03, please see [this specific commit](https://github.com/A-Guldborg/assignment-03/tree/baf0451e2dd36126a68c7170349574916d41a2d2) for the assignment.
+
 ## Notes
 
 - Our implementation uses the type Task and not WorkItem as this was the type name when we forked the repo
